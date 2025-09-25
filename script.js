@@ -82,10 +82,19 @@ function setFlag(code, win){ const tile = document.querySelector(`.tile[data-bet
 function updateTileAmounts(){ $$('.tile[data-bet]').forEach(t=>{ const code=t.dataset.bet; const amt=t.querySelector('[data-amt]'); const sinceEl=t.querySelector('[data-since]'); if(amt) amt.textContent = THB(bets[code]||0); if(sinceEl) sinceEl.textContent = `ยังไม่ออก: ${since[code]} ตา`; }); }
 
 function pushHistory(symbol){
-  history.unshift(symbol); if(history.length>10) history = history.slice(0,10);
-  const wrap=$('#history'); wrap.innerHTML='';
-  for(const s of history){ const b=document.createElement('div'); b.className='badge ' + (s==='L'?'l': s==='R'?'r':'t'); wrap.appendChild(b); }
+  history.unshift(symbol);
+  if (history.length > 10) history = history.slice(0, 10);
+
+  const wrap = $('#history');
+  wrap.innerHTML = '';
+
+  history.forEach((s, i) => {
+    const b = document.createElement('div');
+    b.className = 'badge ' + (s === 'L' ? 'l' : s === 'R' ? 'r' : 't') + (i === 0 ? ' latest' : '');
+    wrap.appendChild(b);
+  });
 }
+
 
 // Betting
 function tryBet(code){
