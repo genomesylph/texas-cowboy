@@ -321,3 +321,17 @@ body{
   :root{ --card-w: 42px; --card-h: 60px; --rank-size: 18px; --suit-size: 12px; }
   .arena{ grid-template-columns: minmax(0,.95fr) minmax(0,1.1fr) minmax(0,.95fr); }
 }
+@media (max-width:600px){
+  /* ปรับระยะห่างปุ่มด้านบนให้ชิด */
+  .chips {
+    gap: 0 !important;          /* เอาช่องว่างระหว่างปุ่มออก */
+    justify-content: space-between; /* ให้ปุ่มขยายเต็มแนว */
+    padding: 4px !important;    /* ลด padding รอบนอก */
+    margin-top: 0 !important;   /* เอาระยะบนออก */
+  }
+
+  /* ถ้าตัวปุ่มเองมี margin ให้รีเซ็ต */
+  .chip {
+    margin: 0 !important;
+  }
+}
