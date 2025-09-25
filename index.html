@@ -10,9 +10,9 @@
   <header class="topbar">
     <h1>Texas Cowboy</h1>
     <div class="wallet">
-      <span>ชิป: <b id="chips">10,000</b></span>
+      <span>ชิป: <b id="chips">1,000</b></span>
+      <button id="add1k" class="btn sm">+1k</button>
       <button id="add10k" class="btn sm">+10k</button>
-      <button id="add100k" class="btn sm">+100k</button>
     </div>
   </header>
 
@@ -44,14 +44,13 @@
 
     <!-- ชิป -->
     <section class="chips">
-      <div class="chip-title">เลือกเหรียญ</div>
+      <div class="chip-title">ชิป:</div>
+      <button class="chip" data-v="50">50</button>
       <button class="chip" data-v="100">100</button>
       <button class="chip" data-v="500">500</button>
       <button class="chip" data-v="1000">1000</button>
-      <button class="chip" data-v="5000">5000</button>
-      <button class="chip" data-v="10000">10000</button>
-      <button id="undo" class="btn ghost">ย้อน 1 ครั้ง</button>
-      <button id="clearBets" class="btn ghost">ล้างเดิมพัน</button>
+      <button id="undo" class="btn ghost">ย้อน</button>
+      <button id="clearBets" class="btn ghost">ล้าง</button>
     </section>
 
     <!-- ผู้ชนะ -->
@@ -75,7 +74,7 @@
     <!-- ล่าง: ซ้าย 5 แถว / ขวา 5 แถว -->
     <section class="zone zone-bottom">
       <div class="col">
-        <div class="zone-head">ไพ่ของคาวบอยหรือกระทิง</div>
+        <div class="zone-head">คาวบอย/กระทิง</div>
         <div class="zone-grid-sub left-five">
           <div class="tile" data-bet="ANY_HOLE_SUITED_OR_CONN">
             <div class="t-head"><div>เรียง/สีเดียวกันในมือ</div><div class="odd">×1.66</div></div>

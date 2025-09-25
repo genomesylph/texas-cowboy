@@ -6,7 +6,7 @@ const PAY = {
   WIN_FULL_HOUSE: 20.0, ANY_FOUR_OR_SF_OR_ROYAL: 248.0
 };
 
-let chips = 10000;
+let chips = 1000;
 let selectedChip = 100;
 const bets = Object.fromEntries(Object.keys(PAY).map(k=>[k,0]));
 const since = Object.fromEntries(Object.keys(PAY).map(k=>[k,0]));
@@ -58,21 +58,21 @@ function eval7(cards){
 
   if(sfHi){
     // แจ้งเตือนเมื่อเป็นสเตรทฟลัช/รอยัล (จะทำให้ side bet ×248 ติดด้วย)
-    alert(sfHi===14 ? 'Royal Flush !!!' : 'Straight Flush !!!');
-    return {rank:9,name: sfHi===14? 'Royal Flush':'Straight Flush', key:key(9,sfHi)};
+    alert(sfHi===14 ? 'รอยัลฟลัช !!!' : 'สเตรทฟลัช !!!');
+    return {rank:9,name: sfHi===14? 'รอยัลฟลัช':'สเตรทฟลัช', key:key(9,sfHi)};
   }
   if(four){
-    alert('Four of a Kind !!!');
+    alert('โฟร์การ์ด!!!');
     const kick=Math.max(...u.filter(v=>v!==four.r));
-    return {rank:8,name:'Four of a Kind', key:key(8,four.r,kick)};
+    return {rank:8,name:'โฟร์การ์ด', key:key(8,four.r,kick)};
   }
-  if(trips.length && (pairs.length || trips.length>1)){ const t=trips[0].r; const p=pairs.length?pairs[0].r:trips[1].r; return {rank:7,name:'Full House', key:key(7,t,p)}; }
-  if(flushSuit) return {rank:6,name:'Flush', key:key(6)};
-  if(sHi) return {rank:5,name:'Straight', key:key(5,sHi)};
-  if(trips.length){ const ks=u.filter(v=>v!==trips[0].r).slice(0,2); return {rank:4,name:'Three of a Kind', key:key(4,trips[0].r,...ks)}; }
-  if(pairs.length>=2){ const p1=pairs[0].r,p2=pairs[1].r; const k=Math.max(...u.filter(v=>v!==p1&&v!==p2)); return {rank:3,name:'Two Pair', key:key(3,p1,p2,k)}; }
-  if(pairs.length===1){ const k=u.filter(v=>v!==pairs[0].r).slice(0,3); return {rank:2,name:'One Pair', key:key(2,pairs[0].r,...k)}; }
-  return {rank:1,name:'High Card', key:key(1,...u.slice(0,5))};
+  if(trips.length && (pairs.length || trips.length>1)){ const t=trips[0].r; const p=pairs.length?pairs[0].r:trips[1].r; return {rank:7,name:'ฟูลเฮาส์', key:key(7,t,p)}; }
+  if(flushSuit) return {rank:6,name:'ฟลัช', key:key(6)};
+  if(sHi) return {rank:5,name:'สเตรท', key:key(5,sHi)};
+  if(trips.length){ const ks=u.filter(v=>v!==trips[0].r).slice(0,2); return {rank:4,name:'ตอง', key:key(4,trips[0].r,...ks)}; }
+  if(pairs.length>=2){ const p1=pairs[0].r,p2=pairs[1].r; const k=Math.max(...u.filter(v=>v!==p1&&v!==p2)); return {rank:3,name:'สองคู่', key:key(3,p1,p2,k)}; }
+  if(pairs.length===1){ const k=u.filter(v=>v!==pairs[0].r).slice(0,3); return {rank:2,name:'หนึ่งคู่', key:key(2,pairs[0].r,...k)}; }
+  return {rank:1,name:'ไพ่สูง', key:key(1,...u.slice(0,5))};
 }
 
 // Hole-card side bet helpers
@@ -136,8 +136,8 @@ document.getElementById('undo').addEventListener('click',()=>{
 document.getElementById('clearBets').addEventListener('click',()=>{
   for(const k in bets) bets[k]=0; undoStack.length=0; updateTileAmounts();
 });
+document.getElementById('add1k').addEventListener('click',()=>{ chips+=1000; updateChips(); });
 document.getElementById('add10k').addEventListener('click',()=>{ chips+=10000; updateChips(); });
-document.getElementById('add100k').addEventListener('click',()=>{ chips+=100000; updateChips(); });
 
 // Round
 function settle(pack){

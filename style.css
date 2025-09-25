@@ -1,8 +1,6 @@
 /* =========================================================
-   Texas Cowboy – Optimized style.css
-   - Same visuals/behavior, fewer duplicates, clearer variables
-   - Mobile rules merged; specificity preserved with !important
-   - All tunables kept as CSS variables
+   Texas Cowboy – Optimized style.css (full)
+   - Keep same visuals/behavior; dedup + responsive polish
    ========================================================= */
 
 /* ----------------------
@@ -32,7 +30,7 @@
   --tile-title: 16px;
   --tile-odd: 16px;
 
-  /* Uniform tile height switch (set to same as small tile) */
+  /* Uniform tile height */
   --tile-uniform: 70px;
 
   /* History dots (top badges) */
@@ -42,6 +40,9 @@
   --hist-pad-x: 10px;      /* horizontal padding */
   --hist-bracket: 14px;    /* [ ] size for latest */
   --hist-bracket-off: 8px; /* [ ] offset from dot */
+
+  /* Top 3 zone headers (Cowboy / Tie / Bull) */
+  --zone-head-size: 20px;  /* ปรับที่นี่ให้ใหญ่/เล็กได้ง่าย */
 }
 
 /* ----------------------
@@ -86,8 +87,19 @@ body{
 .side.bull::before{ right:calc(-1 * var(--side-fig-w)); background-image:url("bull.png"); }
 
 /* board */
-.center .community{display:flex;gap:8px;background:linear-gradient(#0f2c2e,#0b2426);border:1px solid #0008;border-radius:12px;padding:8px;min-height:106px}
-.result{margin-top:8px;color:#000}
+.center{ position: relative; }
+.center .community{
+  display:flex;gap:8px;background:linear-gradient(#0f2c2e,#0b2426);
+  border:1px solid #0008;border-radius:12px;padding:8px;min-height:106px;
+  position:relative;padding-bottom:40px; /* เผื่อพื้นที่ให้แถบผลด้านล่าง */
+}
+
+/* วางแถบผลภายในกล่องกองกลางด้านล่าง */
+.center .result{
+  position:absolute; left:10px; right:10px; bottom:8px;
+  margin:0 !important; width:auto !important; text-align:center;
+  white-space:nowrap; z-index:5;
+}
 
 /* cards */
 .hand .card, .community .card{
@@ -113,7 +125,12 @@ body{
 .zone{margin-top:14px}
 .zone-grid-top{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .zone-bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.zone-head{background:#4a2f1c;border:2px solid #6a4027;color:#f7dca5;border-radius:10px;padding:6px 10px;margin-bottom:8px;text-align:center;font-weight:800;letter-spacing:.5px}
+.zone-head{
+  background:#4a2f1c;border:2px solid #6a4027;color:#f7dca5;
+  border-radius:10px;padding:6px 10px;margin-bottom:8px;
+  text-align:center;font-weight:800;letter-spacing:.5px;
+  font-size: var(--zone-head-size) !important; /* <<< ปรับผ่านตัวแปร */
+}
 
 /* subgrid (5 rows) */
 .zone-grid-sub{display:grid;grid-template-columns:1fr;gap:var(--tile-gap);grid-auto-rows:auto}
@@ -172,16 +189,17 @@ body{
 .badge.latest::before,
 .badge.latest::after{
   position:absolute; top:50%; transform:translateY(-50%);
-  font-weight:900; font-size:var(--hist-bracket); color:#000; line-height:1;
+  font-weight:900; font-size:var(--hist-bracket); color:#c0af1a; line-height:1;
 }
 .badge.latest::before{content:'['; left:calc(-1 * var(--hist-bracket-off))}
 .badge.latest::after{content:']'; right:calc(-1 * var(--hist-bracket-off))}
 
-/* Inline result pill */
+/* Inline result pill (generic) */
 .result{
   display:inline-block; background:rgba(0,0,0,0.45);
   border:1px solid rgba(255,255,255,0.08); border-radius:10px;
   padding:6px 10px; color:#fff; backdrop-filter:blur(2px);
+  white-space: nowrap;
 }
 
 /* Rank labels pinned to bottom of side panels */
@@ -191,6 +209,19 @@ body{
   border-radius:10px; padding:3px 8px;
 }
 .side{ padding-bottom:38px; }
+
+/* ====== Patch: widen result pill under side panels & avoid wrapping ====== */
+.side .result{ display:block; width:calc(100% - 16px); margin:6px auto 0; text-align:center; }
+
+/* --- Stretch rank pill & keep one line --- */
+#leftRank, #rightRank{
+  position:absolute;
+  left:8px; right:8px; bottom:6px;
+  transform:none; text-align:center; white-space:nowrap;
+  padding:6px 10px; line-height:1.1; border-radius:12px; z-index:2; width:auto;
+}
+/* เผื่อพื้นที่ด้านล่างไม่ให้ชน */
+.side{ padding-bottom:48px; }
 
 /* ----------------------
    Responsive
@@ -204,16 +235,22 @@ body{
     --card-w: 66px; --card-h: 92px; --rank-size: 26px; --suit-size: 18px;
     --tile-gap: 8px; --tile-pad: 10px; --tile-min-h: 56px;
     --tile-font: 16px; --tile-title: 15px; --tile-odd: 15px;
+    --zone-head-size: 18px; /* tablet ย่อเล็กน้อย */
   }
   .arena{grid-template-columns:1fr}
   .zone-grid-top{grid-template-columns:repeat(3,1fr)}
 }
 
-/* Mobile portrait (merged all <=600px rules here) */
+/* Mobile portrait */
 @media (max-width:600px){
   /* Hide side figures entirely */
   .side.cowboy::before,.side.bull::before{display:none !important;width:0 !important}
-  :root{ --side-fig-w: 0px; }
+  :root{
+    --side-fig-w: 0px;
+
+    /* ย่อหัวข้อสามช่องบนลง 70% ของ desktop (20px → 14px) */
+    --zone-head-size: 14px;
+  }
 
   /* Keep three columns on the top row but allow shrinking */
   .arena> .side, .arena> .center{min-width:0 !important}
@@ -225,8 +262,9 @@ body{
     --tile-gap: 8px; --tile-pad: 8px; --tile-min-h: 50px;
     --tile-font: 10px; --tile-title: 10px; --tile-odd: 10px;
   }
+
   .hand{gap:6px}
-  .center .community{gap:6px;padding:4px}
+  .center .community{gap:6px;padding:4px;padding-bottom:40px}
   .side{padding:8px}
   .side .side-head .tag{transform:scale(.95)}
   .zone-grid-top{grid-template-columns:repeat(3,1fr);gap:8px}
@@ -236,9 +274,22 @@ body{
   .zone-head{padding:5px 8px}
   .tile{padding:var(--tile-pad) !important;min-height:var(--tile-min-h) !important}
   .foot{margin-top:6px}
-  .since{font-size:11px}
   #log{font-size:12px}
   .result{padding:4px 8px;margin:6px auto 0;font-size:14px}
+
+  /* ลดตัวอักษรในกล่องเดิมพันลง ~70% (ยกเว้น .since) */
+  .tile,
+  .tile .t-center .title,
+  .tile .foot,
+  .tile .odd,
+  .tile .placed{
+    font-size:70% !important;
+  }
+  /* คงขนาดตัว "ไม่ออกมากี่ตา" */
+  .tile .since{
+    font-size:12px !important;
+    line-height:1.2 !important;
+  }
 
   /* Stick chips and main action button at the bottom */
   body{padding-bottom:130px}
@@ -269,31 +320,4 @@ body{
 @media (max-width:420px){
   :root{ --card-w: 42px; --card-h: 60px; --rank-size: 18px; --suit-size: 12px; }
   .arena{ grid-template-columns: minmax(0,.95fr) minmax(0,1.1fr) minmax(0,.95fr); }
-}
-
-/* ====== Patch: widen result pill under side panels to avoid wrapping ====== */
-.side .result{ display:block; width:calc(100% - 16px); margin:6px auto 0; text-align:center; }
-.result{ white-space: nowrap; }
-
-/* --- Stretch rank pill in side panels & keep one line --- */
-#leftRank, #rightRank{
-  position:absolute;
-  left:8px;               /* กินกว้างเกือบเต็มกล่องดำ */
-  right:8px;
-  transform:none;         /* ไม่ต้อง translateX(-50%) แล้ว */
-  text-align:center;
-  white-space:nowrap;     /* ห้ามตัดบรรทัด (One Pair ไม่ขึ้นบรรทัดใหม่) */
-  padding:6px 10px;
-  line-height:1.1;
-  border-radius:12px;
-  z-index:2;
-  width:auto;             /* ให้คำนวณตาม left/right */
-}
-
-/* เผื่อพื้นที่ด้านล่างเพิ่มนิดนึงไม่ให้ชน */
-.side{ padding-bottom:48px; }
-
-/* ย่อฟอนต์อัตโนมัติบนจอแคบเพื่อไม่ให้ล้น */
-@media (max-width:600px){
-  #leftRank, #rightRank{ font-size:clamp(11px, 3.3vw, 14px); }
 }
