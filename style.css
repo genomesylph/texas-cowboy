@@ -3,7 +3,23 @@
   --parch:#f0e0c8; --gold:#e2b34b;
   --green:#58b368; --red:#d9534f; --blue:#4fa3ff;
   --text:#f7eddc;
-  --side-fig-w: 140px; /* ความกว้างรูปตัวละครชิดขอบ */
+
+  /* === ปรับขนาดรูปคาวบอย/กระทิง (ชิดขอบ) === */
+  --side-fig-w: 140px;
+
+  /* === ปรับขนาดไพ่ (การ์ด) === */
+  --card-w: 80px;      /* กว้างไพ่ */
+  --card-h: 114px;     /* สูงไพ่  */
+  --rank-size: 32px;   /* A/K/Q/J/ตัวเลข */
+  --suit-size: 22px;   /* ♠ ♥ ♦ ♣ */
+
+  /* === ปรับขนาดกล่องด้านล่างทั้งหมด (ซ้าย/ขวา) === */
+  --tile-gap: 10px;      /* ระยะห่างระหว่างกล่อง */
+  --tile-pad: 12px;      /* padding ในกล่อง */
+  --tile-min-h: 60px;    /* ความสูงขั้นต่ำกล่อง */
+  --tile-font: 18px;     /* ฟอนต์หลักในกล่อง */
+  --tile-title: 16px;    /* ฟอนต์หัวข้อ/ชื่อช่อง */
+  --tile-odd: 16px;      /* ฟอนต์ตัวคูณ ×2.2 ฯลฯ */
 }
 *{box-sizing:border-box}
 body{
@@ -32,13 +48,13 @@ body{
 .tag{padding:2px 8px;border-radius:999px;border:1px solid #0008;color:#ddd;background:#2a1c16}
 .hand{display:flex;gap:8px;margin-top:8px}
 
-/* character pictures stuck to the outer edges, not blocking clicks */
+/* รูปคาวบอย/กระทิงชิดขอบ */
 .side.cowboy::before,
 .side.bull::before{
   content:""; position:absolute; top:0; bottom:0; width:var(--side-fig-w);
   background-repeat:no-repeat; background-position:center; background-size:contain;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,.4));
-  pointer-events: none; /* very important: allow clicks through */
+  pointer-events: none;
 }
 .side.cowboy::before{ left:calc(-1 * var(--side-fig-w)); background-image:url("cowboy.png"); }
 .side.bull::before{ right:calc(-1 * var(--side-fig-w)); background-image:url("bull.png"); }
@@ -48,12 +64,19 @@ body{
 .result{margin-top:8px}
 
 /* cards */
-.card{width:62px;height:88px;border-radius:10px;background:#fff;color:#111;display:grid;place-items:center;font-weight:800;border:2px solid #0002;box-shadow:0 2px 8px #0005;font-size: 40px}
-.card.red{color:#c62839}
-.card small{
-  font-size: 30px;     /* สัญลักษณ์ดอก */
-  line-height: 1;
+.hand .card, .community .card{
+  width: var(--card-w) !important;
+  height: var(--card-h) !important;
+  font-size: var(--rank-size) !important;
+  display: grid; place-items: center;
 }
+.hand .card small, .community .card small{
+  font-size: var(--suit-size) !important;
+  line-height: 1 !important;
+}
+.card{border-radius:10px;background:#fff;color:#111;font-weight:800;border:2px solid #0002;box-shadow:0 2px 8px #0005}
+.card.red{color:#c62839}
+
 /* chips row */
 .chips{display:flex;align-items:center;gap:8px;margin-top:12px}
 .chip-title{opacity:.9;margin-right:6px}
@@ -66,30 +89,33 @@ body{
 .zone-bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .zone-head{background:#4a2f1c;border:2px solid #6a4027;color:#f7dca5;border-radius:10px;padding:6px 10px;margin-bottom:8px;text-align:center;font-weight:800;letter-spacing:.5px}
 
-/* each column below is vertical list (5 แถว) */
-.zone-grid-sub{display:grid;grid-template-columns:1fr;gap:10px;grid-auto-rows:auto}
+/* กล่องล่างซ้าย/ขวาเป็นแนวตั้ง (5 แถว) */
+.zone-grid-sub{display:grid;grid-template-columns:1fr;gap:var(--tile-gap);grid-auto-rows:auto}
 .left-five,.right-five{grid-template-columns:1fr !important}
 
 /* tiles */
-.tile{background:linear-gradient(#163d40,#0f2c2e);border:2px solid #30241b;border-radius:12px;padding:10px;cursor:pointer;position:relative;min-height:92px;box-shadow:0 2px 0 #0006 inset}
+.tile{background:linear-gradient(#163d40,#0f2c2e);border:2px solid #30241b;border-radius:12px;
+  padding:var(--tile-pad) !important;cursor:pointer;position:relative;min-height:var(--tile-min-h) !important;
+  box-shadow:0 2px 0 #0006 inset}
 .tile:hover{outline:2px solid #3ec6c7}
 .t-head,.t-center{display:flex;justify-content:space-between;align-items:center}
 .t-center{justify-content:center;gap:10px}
 .t-center .title{font-size:18px;font-weight:900;text-transform:uppercase}
-.odd{color:var(--gold);font-weight:900}
-.foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
+.odd{color:var(--gold);font-weight:900;font-size:var(--tile-odd) !important}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;font-size:var(--tile-font) !important}
 .placed{font-weight:800}
 .since{color:#bfbfbf;font-size:12px}
 .flag{width:12px;height:12px;border-radius:50%;border:2px solid #0003;display:inline-block}
 .flag.win{background:var(--green)} .flag.lose{background:#b44}
 
-/* ---------- LOG tile shrink & hide header ---------- */
-#log-tile .t-head{display:none}      /* ซ่อนคำว่า บันทึกผล */
-#log-tile{padding:8px;min-height:60px}
-#log-tile.tile{min-height:60px !important}
-#log{max-height:80px;line-height:1.25;overflow:auto;background:#27190f;border:1px solid #5a3a25;border-radius:8px;padding:8px;color:#ffe7c7;font-size:13px}
+/* log tile */
+#log-tile .t-head{display:none}
+#log-tile{padding:8px;min-height:calc(var(--tile-min-h) - 20px) !important}
+#log{max-height:calc(var(--tile-min-h) - 30px) !important;line-height:1.25;
+  overflow:auto;background:#27190f;border:1px solid #5a3a25;border-radius:8px;
+  padding:8px;color:#ffe7c7;font-size:13px}
 
-/* controls tile (button only) */
+/* controls tile */
 #controls-tile{cursor:default}
 
 /* history badges */
