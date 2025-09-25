@@ -14,14 +14,15 @@
   --suit-size: 22px;   /* ♠ ♥ ♦ ♣ */
 
   /* === ปรับขนาดกล่องด้านล่างทั้งหมด (ซ้าย/ขวา) === */
+  /* ปรับ 5 ตัวนี้ เพื่อ “ขนาดกล่อง” ทั้งหมด */
   --tile-gap: 10px;      /* ระยะห่างระหว่างกล่อง */
   --tile-pad: 12px;      /* padding ในกล่อง */
-  --tile-min-h: 60px;
-  --tile-max-h: 60px;/* ความสูงขั้นต่ำกล่อง */
+  --tile-min-h: 60px;    /* ความสูงขั้นต่ำกล่อง */
   --tile-font: 18px;     /* ฟอนต์หลักในกล่อง */
   --tile-title: 16px;    /* ฟอนต์หัวข้อ/ชื่อช่อง */
   --tile-odd: 16px;      /* ฟอนต์ตัวคูณ ×2.2 ฯลฯ */
 }
+
 *{box-sizing:border-box}
 body{
   margin:0;font-family:system-ui,Segoe UI,Roboto,Inter,sans-serif;color:var(--text);
@@ -95,9 +96,14 @@ body{
 .left-five,.right-five{grid-template-columns:1fr !important}
 
 /* tiles */
-.tile{background:linear-gradient(#163d40,#0f2c2e);border:2px solid #30241b;border-radius:12px;
-  padding:var(--tile-pad) !important;cursor:pointer;position:relative;min-height:var(--tile-min-h) !important;
-  box-shadow:0 2px 0 #0006 inset}
+.tile{
+  background:linear-gradient(#163d40,#0f2c2e);
+  border:2px solid #30241b;border-radius:12px;
+  padding:var(--tile-pad) !important;
+  cursor:pointer;position:relative;
+  min-height:var(--tile-min-h) !important;
+  box-shadow:0 2px 0 #0006 inset
+}
 .tile:hover{outline:2px solid #3ec6c7}
 .t-head,.t-center{display:flex;justify-content:space-between;align-items:center}
 .t-center{justify-content:center;gap:10px}
@@ -112,9 +118,12 @@ body{
 /* log tile */
 #log-tile .t-head{display:none}
 #log-tile{padding:8px;min-height:calc(var(--tile-min-h) - 20px) !important}
-#log{max-height:calc(var(--tile-min-h) - 30px) !important;line-height:1.25;
-  overflow:auto;background:#27190f;border:1px solid #5a3a25;border-radius:8px;
-  padding:8px;color:#ffe7c7;font-size:13px}
+#log{
+  max-height:calc(var(--tile-min-h) - 30px) !important;
+  line-height:1.25; overflow:auto;
+  background:#27190f;border:1px solid #5a3a25;border-radius:8px;
+  padding:8px;color:#ffe7c7;font-size:13px
+}
 
 /* controls tile */
 #controls-tile{cursor:default}
@@ -123,3 +132,81 @@ body{
 .history{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px}
 .badge{width:14px;height:14px;border-radius:50%}
 .badge.l{background:var(--red)} .badge.r{background:var(--blue)} .badge.t{background:var(--green)}
+
+
+
+/* =========================================================
+   === MOBILE OPTIMIZE: เห็นทุกปุ่มในหน้าเดียวบนมือถือ ===
+   - ย่อขนาดรูป/ไพ่/กล่อง
+   - รวมคอลัมน์เป็นคอลัมน์เดียว
+   - ตรึง “ชิป” และ “แจกไพ่/เปิดผล” ไว้ด้านล่าง
+   ปรับตัวเลขตามใจได้
+   ========================================================= */
+
+/* จุดปรับแรก: แท็บเล็ตลงไป */
+@media (max-width: 900px){
+  .wrap{max-width:100%; padding:10px}
+  :root{
+    --side-fig-w: 96px;
+    --card-w: 66px; --card-h: 92px; --rank-size: 26px; --suit-size: 18px;
+    --tile-gap: 8px; --tile-pad: 10px; --tile-min-h: 56px;
+    --tile-font: 16px; --tile-title: 15px; --tile-odd: 15px;
+  }
+  .arena{grid-template-columns:1fr}      /* มือซ้าย–บอร์ด–มือขวา เรียงลง */
+  .zone-grid-top{grid-template-columns:repeat(3,1fr)} /* ผู้ชนะ 3 ช่องอยู่ในบรรทัดเดียว */
+}
+
+/* จุดปรับหลัก: มือถือแนวตั้ง */
+@media (max-width: 600px){
+  :root{
+    --side-fig-w: 72px;                  /* รูปข้าง ๆ เล็กลง */
+    --card-w: 54px; --card-h: 72px;      /* ไพ่เล็กลงเพื่อไม่ล้น */
+    --rank-size: 22px; --suit-size: 16px;
+
+    /* ===== จุดที่ “ปรับขนาดกล่อง” บนมือถือ ===== */
+    --tile-gap: 8px;
+    --tile-pad: 8px;
+    --tile-min-h: 50px;
+    --tile-font: 14px;
+    --tile-title: 14px;
+    --tile-odd: 14px;
+  }
+
+  .wrap{padding:8px}
+  .zone-bottom{grid-template-columns:1fr} /* ซ้าย/ขวา รวมเป็นคอลัมน์เดียว */
+  .zone-grid-top{grid-template-columns:repeat(3,1fr)}
+  .zone-head{padding:6px 8px}
+
+  /* ให้บรรทัดภายในกล่องกระชับ */
+  .since{font-size:11px}
+  #log{font-size:12px}
+
+  /* ===== ตรึงชิปและปุ่มไว้ด้านล่างให้เห็นตลอด ===== */
+  body{padding-bottom:128px} /* กันพื้นที่ให้ของที่ตรึงทับ */
+  .chips{
+    position:fixed; left:8px; right:8px; bottom:64px; z-index:60;
+    background:linear-gradient(#2b201b,#1f1712);
+    border:1px solid #0008; border-radius:12px; padding:6px 8px;
+    gap:6px; overflow-x:auto; white-space:nowrap;
+  }
+  #deal{
+    position:fixed; left:8px; right:8px; bottom:8px; z-index:70;
+    border-radius:12px; padding:12px 16px; font-size:16px;
+  }
+  /* ซ่อนกรอบปุ่มในโซนกล่อง เพื่อเหลือเฉพาะปุ่มที่ตรึง */
+  #controls-tile{ display:none; }
+}
+
+/* มือถือเล็กมาก ๆ */
+@media (max-width: 400px){
+  :root{
+    --card-w: 48px; --card-h: 64px; --rank-size: 20px; --suit-size: 14px;
+    --tile-font: 13px; --tile-title: 13px; --tile-odd: 13px;
+  }
+  .chip{padding:6px 10px}
+  #deal{padding:10px 14px; font-size:15px}
+}
+#log{
+  max-height: none !important;
+  overflow: hidden !important;
+}
