@@ -16,13 +16,13 @@ const undoStack = [];
 const $ = q=>document.querySelector(q);
 const $$ = q=>Array.from(document.querySelectorAll(q));
 const THB = n=>Math.floor(n).toLocaleString('th-TH');
-const log = (t) => {
-  const box = $('#log');
-  box.textContent = t;      // เขียนทับของเดิม
-};
+
+// log แสดงบรรทัดล่าสุดเท่านั้น
+const log = (t) => { $('#log').textContent = t; };
 
 const updateChips = ()=> $('#chips').textContent = THB(chips);
 
+// Cards
 const SUITS = ['♠','♥','♦','♣'];
 const RANKS = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
 const RVAL = Object.fromEntries(RANKS.map((r,i)=>[r,i+2]));
@@ -38,6 +38,8 @@ function deal(){
   return {L,R,board};
 }
 
+// Evaluate best of 7
+// 9 SF, 8 Quads, 7 FH, 6 Flush, 5 Straight, 4 Trips, 3 TwoPair, 2 Pair, 1 High
 function eval7(cards){
   const ranks = cards.map(c=>c[0]);
   const suits = cards.map(c=>c[1]);
@@ -53,8 +55,17 @@ function eval7(cards){
   const trips = groups.filter(g=>g.c===3);
   const pairs = groups.filter(g=>g.c===2);
   const key=(...k)=>k.join('-');
-  if(sfHi) return {rank:9,name: sfHi===14? 'Royal Flush':'Straight Flush', key:key(9,sfHi)};
-  if(four){ const kick=Math.max(...u.filter(v=>v!==four.r)); return {rank:8,name:'Four of a Kind', key:key(8,four.r,kick)}; }
+
+  if(sfHi){
+    // แจ้งเตือนเมื่อเป็นสเตรทฟลัช/รอยัล (จะทำให้ side bet ×248 ติดด้วย)
+    alert(sfHi===14 ? 'Royal Flush !!!' : 'Straight Flush !!!');
+    return {rank:9,name: sfHi===14? 'Royal Flush':'Straight Flush', key:key(9,sfHi)};
+  }
+  if(four){
+    alert('Four of a Kind !!!');
+    const kick=Math.max(...u.filter(v=>v!==four.r));
+    return {rank:8,name:'Four of a Kind', key:key(8,four.r,kick)};
+  }
   if(trips.length && (pairs.length || trips.length>1)){ const t=trips[0].r; const p=pairs.length?pairs[0].r:trips[1].r; return {rank:7,name:'Full House', key:key(7,t,p)}; }
   if(flushSuit) return {rank:6,name:'Flush', key:key(6)};
   if(sHi) return {rank:5,name:'Straight', key:key(5,sHi)};
@@ -64,6 +75,7 @@ function eval7(cards){
   return {rank:1,name:'High Card', key:key(1,...u.slice(0,5))};
 }
 
+// Hole-card side bet helpers
 const holeSuited = h=> h[0][1]===h[1][1];
 function holeConn(h){
   const v1=RVAL[h[0][0]], v2=RVAL[h[1][0]]; const hi=Math.max(v1,v2), lo=Math.min(v1,v2);
@@ -77,24 +89,21 @@ function renderDeal(pack){
   $('#rightHand').innerHTML = pack.R.map(cardHtml).join('');
   $('#board').innerHTML = pack.board.map(cardHtml).join('');
 }
+
 function clearFlags(){ $$('.tile .flag').forEach(f=>{ f.classList.remove('win','lose'); }); }
 function setFlag(code, win){ const tile = document.querySelector(`.tile[data-bet="${code}"] .flag`); if(!tile) return; tile.classList.add(win? 'win':'lose'); }
 function updateTileAmounts(){ $$('.tile[data-bet]').forEach(t=>{ const code=t.dataset.bet; const amt=t.querySelector('[data-amt]'); const sinceEl=t.querySelector('[data-since]'); if(amt) amt.textContent = THB(bets[code]||0); if(sinceEl) sinceEl.textContent = `ยังไม่ออก: ${since[code]} ตา`; }); }
 
 function pushHistory(symbol){
   history.unshift(symbol);
-  if (history.length > 10) history = history.slice(0, 10);
-
-  const wrap = $('#history');
-  wrap.innerHTML = '';
-
+  if (history.length > 10) history.splice(10);
+  const wrap = $('#history'); wrap.innerHTML = '';
   history.forEach((s, i) => {
     const b = document.createElement('div');
     b.className = 'badge ' + (s === 'L' ? 'l' : s === 'R' ? 'r' : 't') + (i === 0 ? ' latest' : '');
     wrap.appendChild(b);
   });
 }
-
 
 // Betting
 function tryBet(code){
@@ -106,7 +115,6 @@ function tryBet(code){
   updateTileAmounts();
 }
 
-// handle clicks on bet tiles only
 document.addEventListener('click',(e)=>{
   const tile = e.target.closest('.tile[data-bet]');
   if(tile){ tryBet(tile.dataset.bet); }
@@ -135,50 +143,88 @@ document.getElementById('add100k').addEventListener('click',()=>{ chips+=100000;
 function settle(pack){
   clearFlags();
   const roundStake = Object.values(bets).reduce((a,b)=>a+b,0);
+
   const L = eval7([...pack.L, ...pack.board]);
   const R = eval7([...pack.R, ...pack.board]);
-  document.getElementById('leftRank').textContent = L.name;
-  document.getElementById('rightRank').textContent = R.name;
+
+  $('#leftRank').textContent = L.name;
+  $('#rightRank').textContent = R.name;
+
+  // ใครชนะ
   let winner='T';
-  if(L.rank!==R.rank) winner = L.rank>R.rank? 'L':'R'; else winner = (L.key>R.key? 'L' : (L.key<R.key? 'R':'T'));
-  document.getElementById('result').textContent = winner==='L'? 'COWBOY ชนะ' : winner==='R'? 'BULL ชนะ' : 'เสมอ';
+  if(L.rank!==R.rank) winner = L.rank>R.rank? 'L':'R';
+  else winner = (L.key>R.key? 'L' : (L.key<R.key? 'R':'T'));
 
-  const winEval = winner==='L'? L : winner==='R'? R : null;
-  const anyHas = (fn)=> fn(L) || fn(R);
-  let winTotal=0;
+  $('#result').textContent = winner==='L'? 'COWBOY ชนะ' : winner==='R'? 'BULL ชนะ' : 'เสมอ';
 
+  // กำหนด rank สำหรับกลุ่ม "ไพ่ของผู้ชนะ"
+  // - ถ้ามีผู้ชนะจริง => ใช้ rank ของผู้ชนะ
+  // - ถ้าเสมอ        => ใช้ rank ที่เสมอกันนั้น (L.rank == R.rank)
+  const winRank = (winner==='T') ? L.rank : (winner==='L' ? L.rank : R.rank);
+
+  // alert side bet พิเศษ
+  // ×248: โฟร์การ์ด/สเตรทฟลัช/รอยัล — eval7() alert ไปแล้ว แต่ย้ำให้แน่ใจเมื่อเงื่อนไข side bet ติด
+  if (L.rank >= 8 || R.rank >= 8) {
+    // ปล่อยเฉพาะครั้งนี้ (ไม่ spam ซ้ำกับ eval7 มากไป)
+    // alert('Hit ×248 side bet!');
+  }
+  // ×100: AA ในมือ (ฝั่งใดฝั่งหนึ่ง)
+  if (holeAA(pack.L) || holeAA(pack.R)) {
+    alert('AA ในมือ! ×100');
+  }
+
+  // mapping จ่ายรางวัล
+  // NOTE: ตอน "เสมอ" ไม่จ่าย COWBOY/BULL แต่จะจ่ายกลุ่ม "ไพ่ของผู้ชนะ" ตาม winRank
   const ok = {
-    LEFT_WIN: winner==='L',
-    RIGHT_WIN: winner==='R',
-    TIE: winner==='T',
+    // ผู้ชนะซ้าย/ขวา
+    LEFT_WIN:  (winner === 'L'),
+    RIGHT_WIN: (winner === 'R'),
+    TIE:       (winner === 'T'),
+
+    // ฝั่งใดก็ได้ / พิเศษ (ไม่ขึ้นกับ winner)
     ANY_HOLE_SUITED_OR_CONN: (holeSuited(pack.L) || holeConn(pack.L) || holeSuited(pack.R) || holeConn(pack.R)),
-    ANY_HOLE_PAIR: (holePair(pack.L) || holePair(pack.R)),
-    ANY_HOLE_AA: (holeAA(pack.L) || holeAA(pack.R)),
-    WIN_HIGH_OR_PAIR: !!winEval && (winEval.rank===1 || winEval.rank===2),
-    WIN_TWO_PAIR: !!winEval && winEval.rank===3,
-    WIN_TRIPS_STRAIGHT_FLUSH: !!winEval && (winEval.rank===4 || winEval.rank===5 || winEval.rank===6),
-    WIN_FULL_HOUSE: !!winEval && winEval.rank===7,
-    ANY_FOUR_OR_SF_OR_ROYAL: anyHas(ev=> ev.rank>=8)
+    ANY_HOLE_PAIR:           (holePair(pack.L) || holePair(pack.R)),
+    ANY_HOLE_AA:             (holeAA(pack.L) || holeAA(pack.R)),
+
+    // ไพ่ของผู้ชนะ (หรือ rank ที่เสมอกัน)
+    WIN_HIGH_OR_PAIR:         (winRank === 1 || winRank === 2),
+    WIN_TWO_PAIR:             (winRank === 3),
+    WIN_TRIPS_STRAIGHT_FLUSH: (winRank === 4 || winRank === 5 || winRank === 6),
+    WIN_FULL_HOUSE:           (winRank === 7),
+
+    // ×248: ฝั่งใดฝั่งหนึ่งได้ Quads/Straight Flush/Royal
+    ANY_FOUR_OR_SF_OR_ROYAL: (L.rank >= 8 || R.rank >= 8)
   };
 
+  // ตั้งธงชนะ/แพ้ + นับ "ยังไม่ออก"
   for(const code of Object.keys(PAY)){
     if(ok[code]){ since[code]=0; setFlag(code,true); } else { since[code]++; setFlag(code,false); }
   }
 
+  // คิดเงิน
+  let winTotal=0;
   for(const code of Object.keys(PAY)){
-    const st = bets[code]||0; if(st>0 && ok[code]){ const gain = Math.floor(st * PAY[code]); chips += gain; winTotal += gain; }
+    const st = bets[code]||0;
+    if(st>0 && ok[code]){
+      const gain = Math.floor(st * PAY[code]);
+      chips += gain; winTotal += gain;
+    }
   }
 
   updateChips(); updateTileAmounts();
   const profit = winTotal - roundStake;
   const pfStr = (profit>=0? `กำไร ${THB(profit)}` : `ขาดทุน ${THB(-profit)}`);
-  log(`ผล: ${document.getElementById('result').textContent} | ${L.name} vs ${R.name} | ได้คืน ${THB(winTotal)} ชิป (${pfStr})`);
+  log(`ผล: ${$('#result').textContent} | ${L.name} vs ${R.name} | ได้คืน ${THB(winTotal)} ชิป (${pfStr})`);
 
   pushHistory(winner);
-  for(const k in bets) bets[k]=0; undoStack.length=0; updateTileAmounts();
+
+  // ล้างเดิมพัน
+  for(const k in bets) bets[k]=0;
+  undoStack.length=0;
+  updateTileAmounts();
 }
 
-document.getElementById('deal').addEventListener('click',()=>{
+$('#deal').addEventListener('click',()=>{
   const pack=deal(); renderDeal(pack); settle(pack);
 });
 
@@ -186,8 +232,8 @@ document.getElementById('deal').addEventListener('click',()=>{
 (function init(){
   updateChips();
   const back='<div class="card">?</div>';
-  document.getElementById('leftHand').innerHTML=back+back;
-  document.getElementById('rightHand').innerHTML=back+back;
-  document.getElementById('board').innerHTML=back.repeat(5);
+  $('#leftHand').innerHTML=back+back;
+  $('#rightHand').innerHTML=back+back;
+  $('#board').innerHTML=back.repeat(5);
   updateTileAmounts();
 })();
