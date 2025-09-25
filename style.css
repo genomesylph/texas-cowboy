@@ -210,3 +210,25 @@ body{
   max-height: none !important;
   overflow: hidden !important;
 }
+/* วงเล็บครอบจุด “ล่าสุด” */
+.badge.latest{
+  position: relative;
+}
+.badge.latest::before,
+.badge.latest::after{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 900;
+  font-size: 14px;       /* ปรับขนาดวงเล็บได้ */
+  color: #f0d27a;        /* สีทอง ปรับได้ */
+  line-height: 1;
+}
+.badge.latest::before{
+  content: '[';
+  left: -8px;            /* ระยะห่างจากจุดด้านซ้าย */
+}
+.badge.latest::after{
+  content: ']';
+  right: -8px;           /* ระยะห่างจากจุดด้านขวา */
+}
