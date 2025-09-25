@@ -48,9 +48,12 @@ body{
 .result{margin-top:8px}
 
 /* cards */
-.card{width:62px;height:88px;border-radius:10px;background:#fff;color:#111;display:grid;place-items:center;font-weight:800;border:2px solid #0002;box-shadow:0 2px 8px #0005}
+.card{width:62px;height:88px;border-radius:10px;background:#fff;color:#111;display:grid;place-items:center;font-weight:800;border:2px solid #0002;box-shadow:0 2px 8px #0005;font-size: 28px}
 .card.red{color:#c62839}
-
+.card small{
+  font-size: 20px;     /* สัญลักษณ์ดอก */
+  line-height: 1;
+}
 /* chips row */
 .chips{display:flex;align-items:center;gap:8px;margin-top:12px}
 .chip-title{opacity:.9;margin-right:6px}
