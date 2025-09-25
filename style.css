@@ -63,7 +63,7 @@ body{
 
 /* board */
 .center .community{display:flex;gap:8px;background:linear-gradient(#0f2c2e,#0b2426);border:1px solid #0008;border-radius:12px;padding:8px;min-height:106px}
-.result{margin-top:8px}
+.result{margin-top:8px;color:#000}
 
 /* cards */
 .hand .card, .community .card{
