@@ -16,7 +16,11 @@ const undoStack = [];
 const $ = q=>document.querySelector(q);
 const $$ = q=>Array.from(document.querySelectorAll(q));
 const THB = n=>Math.floor(n).toLocaleString('th-TH');
-const log = t=>{ const p=document.createElement('p'); p.textContent=t; $('#log').prepend(p); }
+const log = (t) => {
+  const box = $('#log');
+  box.textContent = t;      // เขียนทับของเดิม
+};
+
 const updateChips = ()=> $('#chips').textContent = THB(chips);
 
 const SUITS = ['♠','♥','♦','♣'];
