@@ -1,0 +1,21 @@
+
+/* === Cowboy add-ons (non-destructive) === */
+body{
+  background: url("background.jpg") center / cover fixed no-repeat;
+}
+.avatar-frame{
+  width: 100%;
+  height: 160px;              /* ปรับได้ตามต้องการ */
+  border: 3px solid #5a3a25;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 8px 0;
+  background: #1b0f08;
+  box-shadow: 0 4px 10px #0006;
+}
+.avatar-frame img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
