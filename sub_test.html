@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>MQTT SUB Test</title>
+<pre id="log" style="font:14px/1.4 monospace; white-space:pre-wrap"></pre>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+  const log = (...a)=>document.getElementById('log').textContent += a.join(' ')+'\n';
+  const client = mqtt.connect("wss://test.mosquitto.org:8081/mqtt", { reconnectPeriod:1500, connectTimeout:10000 });
+  client.on('connect', ()=>{ log('connected'); client.subscribe('cowboy/state'); client.subscribe('cowboy/reveal'); });
+  client.on('message', (t,p)=>{ log('topic:', t, '\n', p.toString(), '\n'); });
+  client.on('error', e=>log('error', e));
+</script>

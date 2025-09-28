@@ -58,11 +58,9 @@ function eval7(cards){
 
   if(sfHi){
     // แจ้งเตือนเมื่อเป็นสเตรทฟลัช/รอยัล (จะทำให้ side bet ×248 ติดด้วย)
-    alert(sfHi===14 ? 'รอยัลฟลัช !!!' : 'สเตรทฟลัช !!!');
     return {rank:9,name: sfHi===14? 'รอยัลฟลัช':'สเตรทฟลัช', key:key(9,sfHi)};
   }
   if(four){
-    alert('โฟร์การ์ด!!!');
     const kick=Math.max(...u.filter(v=>v!==four.r));
     return {rank:8,name:'โฟร์การ์ด', key:key(8,four.r,kick)};
   }
@@ -152,36 +150,24 @@ function settle(pack){
 
   // ใครชนะ
   let winner='T';
-  if(L.rank!==R.rank) winner = L.rank>R.rank? 'L':'R';
-  else winner = (L.key>R.key? 'L' : (L.key<R.key? 'R':'T'));
+  if (L.rank !== R.rank) winner = (L.rank > R.rank ? 'L' : 'R');
+  else winner = (L.key > R.key ? 'L' : (L.key < R.key ? 'R' : 'T'));
 
-  $('#result').textContent = winner==='L'? 'COWBOY ชนะ' : winner==='R'? 'BULL ชนะ' : 'เสมอ';
+  $('#result').textContent = (winner==='L' ? 'COWBOY ชนะ' : (winner==='R' ? 'BULL ชนะ' : 'เสมอ'));
 
   // กำหนด rank สำหรับกลุ่ม "ไพ่ของผู้ชนะ"
-  // - ถ้ามีผู้ชนะจริง => ใช้ rank ของผู้ชนะ
-  // - ถ้าเสมอ        => ใช้ rank ที่เสมอกันนั้น (L.rank == R.rank)
   const winRank = (winner==='T') ? L.rank : (winner==='L' ? L.rank : R.rank);
 
-  // alert side bet พิเศษ
-  // ×248: โฟร์การ์ด/สเตรทฟลัช/รอยัล — eval7() alert ไปแล้ว แต่ย้ำให้แน่ใจเมื่อเงื่อนไข side bet ติด
-  if (L.rank >= 8 || R.rank >= 8) {
-    // ปล่อยเฉพาะครั้งนี้ (ไม่ spam ซ้ำกับ eval7 มากไป)
-    // alert('Hit ×248 side bet!');
-  }
-  // ×100: AA ในมือ (ฝั่งใดฝั่งหนึ่ง)
-  if (holeAA(pack.L) || holeAA(pack.R)) {
-    alert('AA ในมือ! ×100');
-  }
+  
 
   // mapping จ่ายรางวัล
-  // NOTE: ตอน "เสมอ" ไม่จ่าย COWBOY/BULL แต่จะจ่ายกลุ่ม "ไพ่ของผู้ชนะ" ตาม winRank
   const ok = {
-    // ผู้ชนะซ้าย/ขวา
+    // ผู้ชนะซ้าย/ขวา/เสมอ (มีไว้เผื่อคุณมี PAY สำหรับอันนี้)
     LEFT_WIN:  (winner === 'L'),
     RIGHT_WIN: (winner === 'R'),
     TIE:       (winner === 'T'),
 
-    // ฝั่งใดก็ได้ / พิเศษ (ไม่ขึ้นกับ winner)
+    // ฝั่งใดก็ได้ / พิเศษ
     ANY_HOLE_SUITED_OR_CONN: (holeSuited(pack.L) || holeConn(pack.L) || holeSuited(pack.R) || holeConn(pack.R)),
     ANY_HOLE_PAIR:           (holePair(pack.L) || holePair(pack.R)),
     ANY_HOLE_AA:             (holeAA(pack.L) || holeAA(pack.R)),
@@ -197,15 +183,16 @@ function settle(pack){
   };
 
   // ตั้งธงชนะ/แพ้ + นับ "ยังไม่ออก"
-  for(const code of Object.keys(PAY)){
-    if(ok[code]){ since[code]=0; setFlag(code,true); } else { since[code]++; setFlag(code,false); }
+  for (const code of Object.keys(PAY)) {
+    if (ok[code]) { since[code]=0; setFlag(code,true); }
+    else          { since[code]++; setFlag(code,false); }
   }
 
   // คิดเงิน
-  let winTotal=0;
-  for(const code of Object.keys(PAY)){
-    const st = bets[code]||0;
-    if(st>0 && ok[code]){
+  let winTotal = 0;
+  for (const code of Object.keys(PAY)) {
+    const st = bets[code] || 0;
+    if (st > 0 && ok[code]) {
       const gain = Math.floor(st * PAY[code]);
       chips += gain; winTotal += gain;
     }
@@ -213,16 +200,25 @@ function settle(pack){
 
   updateChips(); updateTileAmounts();
   const profit = winTotal - roundStake;
-  const pfStr = (profit>=0? `กำไร ${THB(profit)}` : `ขาดทุน ${THB(-profit)}`);
+  const pfStr = (profit>=0 ? `กำไร ${THB(profit)}` : `ขาดทุน ${THB(-profit)}`);
   log(`ผล: ${$('#result').textContent} | ${L.name} vs ${R.name} | ได้คืน ${THB(winTotal)} ชิป (${pfStr})`);
 
-  pushHistory(winner);
+  // >>> ส่งผลไป ESP32 ให้เก็บสถิติกลาง (แก้ตรงนี้)
+  try {
+    const winners = Object.keys(PAY).filter(code => ok[code]);
+    // ฝั่งที่ชนะสำหรับ history: ใช้ 'S' แทนเสมอ (ไม่ใช้ 'T')
+    const winnerSide = (winner === 'L' ? 'L' : (winner === 'R' ? 'R' : 'S'));
+    if (window.mqttPublishWinners) window.mqttPublishWinners(winners, winnerSide);
+  } catch(e) {
+    console.warn('cannot publish winners', e);
+  }
 
   // ล้างเดิมพัน
-  for(const k in bets) bets[k]=0;
-  undoStack.length=0;
+  for (const k in bets) bets[k]=0;
+  undoStack.length = 0;
   updateTileAmounts();
 }
+
 
 $('#deal').addEventListener('click',()=>{
   const pack=deal(); renderDeal(pack); settle(pack);
@@ -237,3 +233,100 @@ $('#deal').addEventListener('click',()=>{
   $('#board').innerHTML=back.repeat(5);
   updateTileAmounts();
 })();
+
+
+// === MQTT helpers (Step 1) ===
+window.renderReveal = ({roundId, L, R, board}) => {
+  try {
+    const suit = s => ({s:'♠',h:'♥',d:'♦',c:'♣'}[s] || s);
+    const norm = c => (c && c.length>=2) ? (c[0] + suit(c[1])) : c;
+    const pack = { L: (L||[]).map(norm), R: (R||[]).map(norm), board: (board||[]).map(norm) };
+    if (typeof renderDeal === 'function') renderDeal(pack);
+    if (typeof settle     === 'function') settle(pack);
+  } catch(e){ console.error('renderReveal error:', e); }
+};
+
+// อัปเดตสถานะจาก ESP32 — เริ่ม flip แค่ครั้งเดียวตอนเข้า FLIP
+window.__lastPhase = window.__lastPhase ?? null;
+
+window.updateUIStateFromServer = ({phase, countdown, roundId}) => {
+  try{
+    if (phase !== window.__lastPhase){
+      if (phase === 'FLIP'){
+        // ปัก placeholder แล้วปล่อยแอนิเมชันวิ่ง 4 วิ
+        window.mountFlipPlaceholders?.();
+      }
+      // (ถ้า RESULT: เดี๋ยว renderReveal จะเคลียร์ placeholder เอง)
+      window.__lastPhase = phase;
+    }
+
+    // log เวลาเฉย ๆ
+    const name = phase === 'BETTING' ? 'เปิดให้แทง' :
+                 phase === 'FLIP'    ? 'กำลังพลิกไพ่' :
+                 phase === 'RESULT'  ? 'แสดงผล'      : phase;
+    if (typeof log === 'function') log(`${name} - เหลือ ${countdown} วิ (รอบ #${roundId})`);
+  }catch(e){}
+};
+
+// วาง placeholder การ์ดหลัง (2 ใบซ้าย, 2 ใบขวา, 5 ใบกลาง) พร้อม delay ไล่จังหวะ
+window.mountFlipPlaceholders = function(){
+  const left  = document.querySelector('#leftHand');
+  const right = document.querySelector('#rightHand');
+  const board = document.querySelector('#board');
+  if (!left || !right || !board) return;
+
+  // เคลียร์ของเก่าก่อน กันซ้อน
+  left.replaceChildren(); right.replaceChildren(); board.replaceChildren();
+
+  const makeCard = (delay=0) => {
+    const c = document.createElement('div');
+    c.className = 'card3d';
+    c.innerHTML = `
+      <div class="inner" style="--flip-delay:${delay}ms">
+        <div class="face back"></div>
+        <div class="face front"></div>
+      </div>`;
+    return c;
+  };
+
+  // ซ้าย–ขวา: 2 ใบ (สลับดีเลย์เล็กน้อย)
+  left.appendChild(makeCard(0));
+  left.appendChild(makeCard(120));
+  right.appendChild(makeCard(0));
+  right.appendChild(makeCard(120));
+
+  // กระดาน: 5 ใบ (ไล่ดีเลย์ให้ไหล)
+  const delays = [0, 90, 180, 270, 360];
+  delays.forEach(d => board.appendChild(makeCard(d)));
+};
+
+
+/* === render 10-dot history === */
+window.renderHistoryDots = function(H){
+  const wrap = document.getElementById('history');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const last10 = H.slice(-10);
+  last10.forEach((entry, idx) => {
+    const d = document.createElement('div');
+    const w = (entry && entry.winner || '').toUpperCase();
+    d.className = 'dot ' + (w==='L'?'l':w==='R'?'r':'s');
+    d.title = `รอบ #${entry.roundId} : ${w==='L'?'ซ้ายชนะ':w==='R'?'ขวาชนะ':'เสมอ'}`;
+
+    // ครอบ [] ถ้าเป็นจุดสุดท้าย
+    if (idx === last10.length - 1) {
+      const leftBracket = document.createElement('span');
+      leftBracket.textContent = '[';
+      const rightBracket = document.createElement('span');
+      rightBracket.textContent = ']';
+
+      wrap.appendChild(leftBracket);
+      wrap.appendChild(d);
+      wrap.appendChild(rightBracket);
+    } else {
+      wrap.appendChild(d);
+    }
+  });
+};
+document.getElementById('deal')?.remove();
+

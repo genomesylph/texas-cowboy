@@ -28,7 +28,7 @@
         <div id="leftHand" class="hand"></div>
       </div>
       <div class="center">
-        <div class="history" id="history"></div>
+        <div class="history-dots" id="history"></div>
         <div id="board" class="community"></div>
         <div class="result">ผล: <b id="result">รอผล</b></div>
       </div>
@@ -129,5 +129,23 @@
   </main>
 
   <script src="script.js"></script>
+
+<!-- MQTT config + client for the web -->
+<script>
+  window.MQTT_CONFIG = {
+    BROKER_URL: "wss://test.mosquitto.org:8081/mqtt",
+    TOPIC_STATE:  "cowboy/state",
+    TOPIC_REVEAL: "cowboy/reveal",
+    TOPIC_BETS_BASE: "cowboy/bets"
+  ,
+    TOPIC_STREAKS: "cowboy/stats/streaks",
+    TOPIC_WINNERS: "cowboy/stats/winners"
+   ,
+    TOPIC_HISTORY: "cowboy/stats/history"};
+</script>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="script_mqtt.js"></script>
+
+
 </body>
 </html>
