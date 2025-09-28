@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 
 <html lang="th">
-<script>
-// ===== CHECK LOGIN =====
-const currentUser = localStorage.getItem("cowboy_current");
-if (!currentUser) {
-  // ยังไม่ได้ล็อกอิน → เด้งกลับไปหน้า login
-  window.location.href = "login.html";
-}
-</script>
-
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
@@ -159,9 +150,7 @@ window.MQTT_CONFIG = window.MQTT_CONFIG || {
    ,
     TOPIC_HISTORY: "cowboy/stats/history"};
 </script>
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-<script src="script_users.js"></script>
-<script src="script.js"></script>
-<script src="script_mqtt.js"></script>
-</body>
+
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script><script src="script.js"></script><script src="script_mqtt.js"></script></body>
 </html>

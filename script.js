@@ -311,7 +311,7 @@ window.updateUIStateFromServer = function(state){
 
   // log เดิมเพื่อดีบัก
   if (typeof log === 'function') {
-    log(`${phaseName} - เหลือ ${countdown} วิ (รอบ #${roundId+3125})`);
+    log(`${phaseName} - เหลือ ${countdown} วิ (รอบ #${roundId})`);
   }
 };
 
