@@ -1,4 +1,5 @@
 {
-  "Nueng": { "pin": "3141", "chips": 1000 },
+  "Nueng": { "pin": "3141", "chips": 11000 },
   "Meemi":  { "pin": "9941", "chips": 2000 }
 }
+
