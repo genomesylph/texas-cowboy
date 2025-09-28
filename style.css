@@ -372,3 +372,243 @@ body{
   100%{ transform: rotateY(180deg); }
 }
 #deal { display: none !important; }
+.card .card-back {
+  transform: rotateY(180deg);
+}
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+/* ===== Mini 6-dot streak (per tile) ===== */
+.mini-dots-wrap{ display:flex; justify-content:center; align-items:center; }
+.mini-dots{
+  display:flex; gap:6px; align-items:center; justify-content:center;
+}
+.mini-dots .mdot{
+  width:10px; height:10px; border-radius:50%;
+  box-shadow:0 0 0 1px rgba(0,0,0,.2) inset;
+}
+.mini-dots .mdot.r{ background:#ef4444; } /* ไม่ออก = สีแดง */
+.mini-dots .mdot.g{ background:#22c55e; } /* ออก    = สีเขียว */
+
+/* ใส่วงเล็บครอบเฉพาะ "จุดล่าสุด" (ขวาสุด) */
+.mini-dots .mdot.latest{ position: relative; }
+.mini-dots .mdot.latest::before,
+.mini-dots .mdot.latest::after{
+  position:absolute; top:50%; transform:translateY(-50%);
+  font-weight:900; font-size:12px; color:#c0af1a; line-height:1;
+}
+.mini-dots .mdot.latest::before{ content:'['; left:-8px; }
+.mini-dots .mdot.latest::after{ content:']'; right:-8px; }
+/* ========== ปรับ [] ให้ชิด/ตรง และจัดกึ่งกลางจุด ========== */
+
+/* 1) มินิดอท 6 จุด: ขยับวงเล็บให้ชิดขึ้น ไม่เบียดจุดข้างๆ และตั้งตรง */
+.mini-dots       { gap: 8px; }                   /* ระยะห่างระหว่างจุด */
+.mini-dots .mdot.latest::before,
+.mini-dots .mdot.latest::after{
+  position:absolute; top:50%; transform:translateY(-50%); /* จัดกึ่งกลางแนวตั้ง */
+  font-weight:900; font-style:normal; line-height:1; 
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;  /* ไม่เอียง */
+  font-size: 11px; color:#c0af1a; letter-spacing:0;
+  pointer-events:none;
+}
+.mini-dots .mdot.latest::before{ content:'['; left:-5px; }  /* เดิม -8px → -5px ให้ชิดขึ้น */
+.mini-dots .mdot.latest::after { content:']'; right:-5px; }
+
+/* 2) 10 จุดบน (คาวบอย/เสมอ/กระทิง): จัดให้อยู่กึ่งกลางเสมอ */
+.history-dots{
+  display:flex; gap:10px; align-items:center; justify-content:center;
+  margin: 0 auto; width: fit-content;          /* บังคับให้อยู่กลาง */
+}
+.history-dots .dot{ width:12px; height:12px; border-radius:50%; }
+
+/* วงเล็บของจุดล่าสุดบนแถบ 10 จุด (เราใส่มาเป็น <span> จาก JS) → ให้ชิด/ตรง */
+.history-dots > span{
+  display:inline-block; margin:0 3px; line-height:1; 
+  font-weight:900; font-style:normal; transform:none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;  /* ไม่เอียง */
+}
+/* ----- Force center the 10-dot bar (Cowboy / Tie / Bull) ----- */
+/* ทำให้ #history เป็นกล่องกว้างเท่าที่จำเป็น แล้วบังคับให้ไปอยู่กลาง
+   แม้ parent จะเป็น flex และใช้ space-between ก็ตาม */
+#history,
+.history-dots {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+
+  width: max-content;       /* กว้างเท่าที่จุดต้องใช้ */
+  margin-left: auto;        /* center ใน flex parent */
+  margin-right: auto;       /* center ใน flex parent */
+  flex: 0 0 auto;           /* ห้ามถูกยืดความกว้าง */
+  align-self: center;       /* ถ้า parent จัด cross-axis */
+}
+
+/* วงเล็บของจุดล่าสุด: ใช้ฟอนต์โมโน/ตั้งตรง และชิดกว่านี้ไม่ให้ไปชนจุดข้าง ๆ */
+.history-dots > span{
+  display:inline-block;
+  margin: 0 2px;            /* เดิม 3–5px → ให้ชิดขึ้น */
+  line-height: 1;
+  font-weight: 900;
+  font-style: normal;
+  transform: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* mini 6-dot: ขยับวงเล็บให้ชิดและ "ตั้งตรง" เช่นกัน */
+.mini-dots .mdot.latest::before,
+.mini-dots .mdot.latest::after{
+  position:absolute; top:50%; transform:translateY(-50%);
+  font-weight:900; font-style:normal; line-height:1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size:11px; color:#c0af1a; pointer-events:none;
+}
+.mini-dots .mdot.latest::before { content:'['; left:-4px; }  /* ชิดขึ้น */
+.mini-dots .mdot.latest::after  { content:']'; right:-4px; } /* ชิดขึ้น */
+/* ----- FIX: Mini 6-dot row must be perfectly level and centered ----- */
+
+/* คอนเทนเนอร์ที่เราใส่ลงใน [data-since] ให้จัดกลางแนวตั้ง-แนวนอน และตัด baseline ออก */
+[data-since]{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  line-height:0;            /* กัน baseline ทำให้ดันขึ้น/ลง */
+}
+
+/* กล่อง 6 จุดให้เป็น inline-flex เพื่อไม่โดน baseline เล่นงาน และกำหนดความสูงคงที่ */
+.mini-dots-wrap{ display:flex; align-items:center; justify-content:center; }
+.mini-dots{
+  display:inline-flex;      /* <— สำคัญ: ไม่ใช้ inline ธรรมดา */
+  align-items:center;
+  gap:8px;
+  line-height:0;            /* ตัดผลของฟอนต์ */
+  vertical-align:middle;
+}
+
+/* จุดให้เป็น block + relative เพื่อให้ pseudo-element ยึดจากจุดได้เป๊ะ */
+.mini-dots .mdot{
+  display:block;            /* <— ไม่ใช้อินไลน์ */
+  width:10px; height:10px;
+  border-radius:50%;
+  position:relative;        /* ให้ [ ] จับตำแหน่งจากจุด */
+}
+
+/* สีเขียว/แดงตามเดิม */
+.mini-dots .mdot.g{ background:#22c55e; }
+.mini-dots .mdot.r{ background:#ef4444; }
+
+/* วงเล็บของ “จุดล่าสุด” — จัดศูนย์กลางแนวตั้งจริง ๆ และชิดพอดี */
+.mini-dots .mdot.latest::before,
+.mini-dots .mdot.latest::after{
+  content:'';
+  position:absolute;
+  top:50%; transform:translateY(-50%);  /* กึ่งกลางจริง */
+  font: 900 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+  line-height:1; letter-spacing:0; font-style:normal;
+  color:#c0af1a;
+  pointer-events:none;
+}
+.mini-dots .mdot.latest::before{ content:'['; left:-6px; }
+.mini-dots .mdot.latest::after { content:']'; right:-6px; }
+/* ---- Force center mini 6-dots for top three tiles (Cowboy / Tie / Bull) ---- */
+.tile[data-bet="LEFT_WIN"] [data-since],
+.tile[data-bet="TIE"]       [data-since],
+.tile[data-bet="RIGHT_WIN"] [data-since]{
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  text-align: center !important;
+  line-height: 0;           /* ตัด baseline ที่ทำให้ดูเอียง */
+}
+
+/* ให้แถบจุดจริง ๆ จัดกลางในคอนเทนเนอร์ */
+.tile[data-bet="LEFT_WIN"] .mini-dots,
+.tile[data-bet="TIE"]       .mini-dots,
+.tile[data-bet="RIGHT_WIN"] .mini-dots{
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* เผื่อ parent ของ [data-since] ใช้ flex ที่ดันไปขวา — รีเซ็ตทับเฉพาะ 3 ช่องบน */
+.tile[data-bet="LEFT_WIN"]  .mini-dots-wrap,
+.tile[data-bet="TIE"]       .mini-dots-wrap,
+.tile[data-bet="RIGHT_WIN"] .mini-dots-wrap{
+  display: flex;
+  justify-content: center !important;
+  align-items: center;
+  width: 100%;
+}
+/* ---------- FIX: 10-dot history overflow on mobile ---------- */
+@media (max-width: 600px){
+  /* ให้คอนเทนเนอร์ 10 จุดถูกจำกัดความกว้างคอลัมน์กลาง + เลื่อนได้ในแนวนอน */
+  .history{
+    max-width: 100% !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    z-index: 5;                              /* ให้อยู่เหนือการ์ด/กล่องข้าง ๆ */
+    padding-left:  calc(var(--hist-pad-x) + var(--hist-bracket-off));
+    padding-right: calc(var(--hist-pad-x) + var(--hist-bracket-off));
+    gap: var(--hist-gap);                    /* ใช้ค่าจากตัวแปร mobile ที่ตั้งไว้แล้ว */
+  }
+  /* ซ่อนสกอร์ลบาร์บน iOS/Chrome ให้ดูเรียบ ๆ */
+  .history::-webkit-scrollbar{ display:none; }
+
+  /* ลดขนาด/ระยะเพื่อช่วยให้พอดีคอลัมน์โดยไม่ต้องเลื่อนมาก */
+  :root{
+    --hist-dot: 11px;            /* ขนาดจุดเล็กลงบนจอแคบ */
+    --hist-gap: 4px;             /* ระยะระหว่างจุด */
+    --hist-bracket: 12px;        /* ขนาด [] */
+    --hist-bracket-off: 6px;     /* offset ของ [] จากจุดล่าสุด */
+  }
+}
+
+/* ป้องกันวงเล็บถูกบีบ/คลิปที่ขอบ: ตั้งจากคอนเทนเนอร์หลักด้วย padding แล้ว */
+.history .badge.latest::before{ left: calc(-1 * var(--hist-bracket-off)); }
+.history .badge.latest::after { right: calc(-1 * var(--hist-bracket-off)); }
+/* --- Fix 10-dot bar on narrow/portrait screens --- */
+@media (max-width: 768px){
+  /* ให้พ่อของแถบ 10 จุด (ถ้าเป็น flex) ยอมขึ้นหลายบรรทัด */
+  .top, .top-row, .status-row, .header-row, .board-row {
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+  }
+
+  /* บังคับให้ .history (10 จุด) กินเต็มบรรทัดของตัวเองและอยู่กลางเสมอ */
+  #history, .history {
+    flex-basis: 100% !important;   /* กินเต็มแถว (ถ้า parent เป็น flex) */
+    width: 100% !important;
+    order: 2;                       /* จัดให้อยู่บรรทัดถัดจากกล่องสองฝั่ง */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: var(--dot10-gap, 5px) !important;
+    padding: 6px 8px !important;
+    margin: 0 !important;
+    overflow: visible !important;   /* ห้ามถูกคลิปขอบ */
+    z-index: 5 !important;          /* ให้อยู่เหนือการ์ด/กล่อง */
+  }
+
+  /* ขนาด/ช่องไฟของจุดบนจอแคบ (กันล้นโดยไม่ต้องซ่อน) */
+  #history .dot, .history .dot {
+    width: 11px !important;
+    height: 11px !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* วงเล็บ [] ของ 10 จุด: ให้คงตำแหน่งชิดและไม่หลุดขอบ */
+  #history > span, .history > span {
+    margin: 0 3px !important;
+    font: 900 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace !important;
+    transform: none !important;
+  }
+}
+
+/* --- ป้องกัน parent บางตัวที่ชอบบีบ/ยืดแถบ 10 จุด --- */
+#history, .history {
+  flex: 0 0 auto !important;        /* ห้ามถูกยืดกว้างโดย parent */
+  max-width: 100% !important;       /* ไม่กว้างเกิน viewport/คอลัมน์ */
+}
+

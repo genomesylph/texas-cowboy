@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>เข้าสู่ระบบ - Texas Cowboy</title>
+  <style>
+    body {
+      display:grid; place-items:center; height:100vh;
+      background:#222; color:#fff; font-family:sans-serif;
+    }
+    .login-box {
+      background:#333; padding:20px; border-radius:10px;
+      max-width:320px; width:100%;
+    }
+    h2 { margin-top:0; text-align:center; }
+    label { display:block; margin:10px 0 4px; }
+    input {
+      width:100%; padding:10px; border-radius:6px; border:none; margin-bottom:12px;
+    }
+    button {
+      width:100%; padding:10px; border-radius:6px; border:none;
+      background:#4fa3ff; color:#fff; font-weight:bold; cursor:pointer;
+    }
+    button:hover { background:#3585d4; }
+    #signupBtn { margin-top:8px; background:#58b368; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>เข้าสู่ระบบ</h2>
+    <label>ชื่อผู้เล่น</label>
+    <input id="name" placeholder="เช่น Nueng">
+    <label>PIN 4 หลัก</label>
+    <input id="pin" type="password" maxlength="4" inputmode="numeric">
+    <button id="loginBtn">เข้าสู่ระบบ</button>
+    <button id="signupBtn">สมัครใหม่</button>
+  </div>
+
+  <script>
+    const GH_OWNER  = "genomesylph";   // ใส่ของมึง
+    const GH_REPO   = "texas-cowboy";   // ใส่ของมึง
+    const GH_BRANCH = "main";        // หรือ "gh-pages"
+    const GH_PATH   = "users.json";
+
+    const RAW_URL = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${GH_PATH}`;
+
+    async function loadUsers(){
+      const res = await fetch(RAW_URL, { cache:"no-cache" });
+      if(!res.ok) throw new Error("โหลด users.json ไม่ได้");
+      return await res.json();
+    }
+
+    async function doLogin(){
+      const name = document.getElementById("name").value.trim();
+      const pin  = document.getElementById("pin").value.trim();
+      if(!name || pin.length!==4) return alert("กรอกชื่อและ PIN 4 หลัก");
+
+      const users = await loadUsers();
+      if(!users[name]) return alert("ไม่พบผู้เล่นนี้");
+      if(users[name].pin!==pin) return alert("PIN ไม่ถูกต้อง");
+
+      localStorage.setItem("cowboy_current", name);
+      location.href = "index.html";
+    }
+
+    async function doSignup(){
+      const name = document.getElementById("name").value.trim();
+      const pin  = document.getElementById("pin").value.trim();
+      if(!name || pin.length!==4) return alert("กรอกชื่อและ PIN 4 หลัก");
+
+      const users = await loadUsers();
+      if(users[name]) return alert("มีชื่อนี้แล้ว");
+
+      // 📝 ตรงนี้ยังไม่เขียนกลับ GitHub (เพราะต้องใช้ API+token)
+      // ตอนนี้สมัครใหม่จะยังไม่บันทึกจริง ต้องทำ Step 4 ต่อ
+      alert("โหมดทดสอบ: สมัครใหม่สำเร็จ (แต่ยังไม่ได้เขียนกลับ GitHub)");
+    }
+
+    document.getElementById("loginBtn").onclick = doLogin;
+    document.getElementById("signupBtn").onclick = doSignup;
+  </script>
+</body>
+</html>

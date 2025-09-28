@@ -9,6 +9,8 @@ const PAY = {
 let chips = 1000;
 let selectedChip = 100;
 const bets = Object.fromEntries(Object.keys(PAY).map(k=>[k,0]));
+window.bets = bets; // bind global to the same object
+
 const since = Object.fromEntries(Object.keys(PAY).map(k=>[k,0]));
 let history = [];
 const undoStack = [];
@@ -90,8 +92,6 @@ function renderDeal(pack){
 
 function clearFlags(){ $$('.tile .flag').forEach(f=>{ f.classList.remove('win','lose'); }); }
 function setFlag(code, win){ const tile = document.querySelector(`.tile[data-bet="${code}"] .flag`); if(!tile) return; tile.classList.add(win? 'win':'lose'); }
-function updateTileAmounts(){ $$('.tile[data-bet]').forEach(t=>{ const code=t.dataset.bet; const amt=t.querySelector('[data-amt]'); const sinceEl=t.querySelector('[data-since]'); if(amt) amt.textContent = THB(bets[code]||0); if(sinceEl) sinceEl.textContent = `ยังไม่ออก: ${since[code]} ตา`; }); }
-
 function pushHistory(symbol){
   history.unshift(symbol);
   if (history.length > 10) history.splice(10);
@@ -249,23 +249,70 @@ window.renderReveal = ({roundId, L, R, board}) => {
 // อัปเดตสถานะจาก ESP32 — เริ่ม flip แค่ครั้งเดียวตอนเข้า FLIP
 window.__lastPhase = window.__lastPhase ?? null;
 
-window.updateUIStateFromServer = ({phase, countdown, roundId}) => {
-  try{
-    if (phase !== window.__lastPhase){
-      if (phase === 'FLIP'){
-        // ปัก placeholder แล้วปล่อยแอนิเมชันวิ่ง 4 วิ
-        window.mountFlipPlaceholders?.();
+window.updateUIStateFromServer = function(state){
+  const { phase, countdown, roundId } = state || {};
+
+  // เปลี่ยนเฟสครั้งแรก/ครั้งใหม่ ค่อยจัดหน้า UI
+  if (phase !== window.__lastPhase) {
+    if (phase === 'BETTING') {
+      // --- วาง "ไพ่หงายหลัง" แบบนิ่ง ๆ 2-2-5 ---
+      const left  = document.querySelector('#leftHand');
+      const right = document.querySelector('#rightHand');
+      const board = document.querySelector('#board');
+      if (left && right && board) {
+        left.replaceChildren(); right.replaceChildren(); board.replaceChildren();
+        const makeBack = () => {
+          const c = document.createElement('div');
+          c.className = 'card3d';
+          // animation:none; และคงหมุนที่ 0deg เพื่อให้เห็น "หลังไพ่" ตลอด
+          c.innerHTML = `
+            <div class="inner" style="animation:none; transform:rotateY(0deg)">
+              <div class="face back"></div>
+              <div class="face front"></div>
+            </div>`;
+          return c;
+        };
+        // มือซ้าย/ขวา อย่างละ 2 ใบ
+        left.append(makeBack(), makeBack());
+        right.append(makeBack(), makeBack());
+        // บอร์ด 5 ใบ
+        for (let i = 0; i < 5; i++) board.appendChild(makeBack());
       }
-      // (ถ้า RESULT: เดี๋ยว renderReveal จะเคลียร์ placeholder เอง)
-      window.__lastPhase = phase;
+
+    } else if (phase === 'FLIP') {
+      // --- เริ่มอนิเมชันพลิกไพ่ 4 วิ ---
+      // (placeholder จะถูกล้างและแทนที่ด้วยไพ่จริงใน renderReveal)
+      if (typeof window.mountFlipPlaceholders === 'function') {
+        window.mountFlipPlaceholders();
+      }
+
+    } else if (phase === 'RESULT') {
+      // ไม่ต้องทำอะไรที่นี่ ให้ renderReveal(msg) มาจัดการเปิดไพ่จริงและคิดผล
+      // (ถ้าอยากเคลียร์ placeholder เผื่อเหตุการณ์มาก่อน ก็ทำเผื่อได้)
+      // document.querySelector('#leftHand')?.replaceChildren();
+      // document.querySelector('#rightHand')?.replaceChildren();
+      // document.querySelector('#board')?.replaceChildren();
     }
 
-    // log เวลาเฉย ๆ
-    const name = phase === 'BETTING' ? 'เปิดให้แทง' :
-                 phase === 'FLIP'    ? 'กำลังพลิกไพ่' :
-                 phase === 'RESULT'  ? 'แสดงผล'      : phase;
-    if (typeof log === 'function') log(`${name} - เหลือ ${countdown} วิ (รอบ #${roundId})`);
-  }catch(e){}
+    window.__lastPhase = phase;
+  }
+
+  // อัปเดตข้อความสถานะ/นาฬิกาถอยหลัง (ถ้ามี element)
+  const phaseName = phase==='BETTING' ? 'เปิดให้แทง'
+                  : phase==='FLIP'    ? 'กำลังพลิกไพ่'
+                  : phase==='RESULT'  ? 'แสดงผล'
+                  : (phase || '');
+
+  const phaseEl = document.getElementById('phaseLabel');
+  if (phaseEl) phaseEl.textContent = phaseName;
+
+  const cdEl = document.getElementById('countdown');
+  if (cdEl) cdEl.textContent = String(countdown ?? '');
+
+  // log เดิมเพื่อดีบัก
+  if (typeof log === 'function') {
+    log(`${phaseName} - เหลือ ${countdown} วิ (รอบ #${roundId+3125})`);
+  }
 };
 
 // วาง placeholder การ์ดหลัง (2 ใบซ้าย, 2 ใบขวา, 5 ใบกลาง) พร้อม delay ไล่จังหวะ
@@ -329,4 +376,80 @@ window.renderHistoryDots = function(H){
   });
 };
 document.getElementById('deal')?.remove();
+
+
+
+/* === patched: keep mini 6-dots after UI updates === */
+// === UPDATE ONLY AMOUNTS; DO NOT TOUCH [data-since] ===
+// === UPDATE ONLY AMOUNTS; DO NOT TOUCH [data-since] ===
+function updateTileAmounts(){
+  document.querySelectorAll('.tile[data-bet]').forEach(tile => {
+    const code  = tile.dataset.bet;
+    const amtEl = tile.querySelector('[data-amt]') || tile.querySelector('.amt') || tile.querySelector('.bet-amt');
+    if (!amtEl) return;
+    const val = Number((typeof bets !== 'undefined' && bets && bets[code]) ? bets[code] : 0);
+    if (typeof THB === 'function') amtEl.textContent = THB(val);
+    else amtEl.textContent = String(val);
+  });
+}
+window.updateTileAmounts = updateTileAmounts;
+;
+function updateTimeAmount(){
+  document.querySelectorAll('.tile[data-bet]').forEach(tile => {
+    const code = tile.dataset.bet;
+
+    // รองรับหลายชื่อ selector: [data-amt] | .amt | .bet-amt
+    const amtEl =
+      tile.querySelector('[data-amt]') ||
+      tile.querySelector('.amt') ||
+      tile.querySelector('.bet-amt');
+
+    if (!amtEl) return;
+
+    const val = Number(window.bets[code] || 0);
+
+    // ถ้ามี THB() ก็ format ด้วย ไม่งั้นแสดงเลขดิบ
+    amtEl.textContent = (typeof THB === 'function') ? THB(val) : String(val);
+  });
+}
+// ให้ global ชี้ตัวจริงเสมอ (กันไปเรียก stub)
+window.updateTileAmounts = updateTileAmounts;
+
+
+// --- Reset ผลช่วงเปิดให้แทง ---
+function resetRoundUIForBetting(){
+  // เคลียร์ข้อความผล
+  const ids = ['leftRank', 'rightRank', 'result'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '–';
+  });
+  // ถ้าต้องการให้คาดว่าเป็น “หลังไพ่” ให้เติม class/สัญลักษณ์เองได้:
+  // เช่น ซ่อนกระดาน/ไพ่บนโต๊ะ:
+  // const board = document.getElementById('boardCards');
+  // if (board) board.classList.add('is-hidden'); // หรือ board.innerHTML = '';
+}
+
+(function(){
+  // เก็บสถานะเฟสล่าสุดเพื่อกันรีเซ็ตซ้ำโดยไม่จำเป็น
+  let __lastPhaseForReset = null;
+
+  // เก็บของเดิมไว้แล้วพันทับ
+  const __oldUpdate = window.updateUIStateFromServer || function(){};
+
+  window.updateUIStateFromServer = function(state){
+    try{
+      const phase = state && state.phase;
+      // เข้า BETTING ครั้งแรกของรอบ → รีเซ็ตข้อความผล
+      if (phase === 'BETTING' && __lastPhaseForReset !== 'BETTING'){
+        resetRoundUIForBetting();
+      }
+      __lastPhaseForReset = phase;
+    }catch(e){ console.warn('resetRoundUI error:', e); }
+
+    // ทำงานเดิมต่อ
+    __oldUpdate(state);
+  };
+})();
+
 
